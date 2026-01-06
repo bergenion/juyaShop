@@ -1,0 +1,86 @@
+.checkout-page {
+  &__empty-alert {
+    margin-bottom: 16px;
+  }
+
+  &__empty-button {
+    // Стили для кнопки перехода в каталог
+  }
+
+  &__title {
+    margin-bottom: 24px;
+  }
+
+  &__form {
+    // Стили для формы
+  }
+
+  &__form-card {
+    // Стили для карточки формы
+  }
+
+  &__form-title {
+    margin-bottom: 16px;
+  }
+
+  &__error {
+    margin-bottom: 16px;
+  }
+
+  &__form-fields {
+    // Стили для полей формы
+  }
+
+  &__field {
+    // Стили для отдельного поля
+  }
+
+  &__summary {
+    // Стили для блока итого
+  }
+
+  &__summary-title {
+    margin-bottom: 16px;
+  }
+
+  &__summary-divider {
+    margin: 16px 0;
+  }
+
+  &__summary-items {
+    // Стили для списка товаров
+  }
+
+  &__summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  &__summary-item-name {
+    // Стили для названия товара
+  }
+
+  &__summary-item-price {
+    // Стили для цены товара
+  }
+
+  &__summary-total {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  &__summary-total-label {
+    // Стили для метки "Всего"
+  }
+
+  &__summary-total-price {
+    // Стили для итоговой цены
+  }
+
+  &__submit-button {
+    // Стили для кнопки оформления заказа
+  }
+}
+

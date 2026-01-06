@@ -1,0 +1,29 @@
+.profile-page {
+  &__title {
+    margin-bottom: 24px;
+  }
+
+  &__card {
+    max-width: 600px;
+  }
+
+  &__card-title {
+    margin-bottom: 16px;
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  &__field {
+    // Стили для полей ввода
+  }
+
+  &__admin-alert {
+    margin-top: 16px;
+  }
+}
+

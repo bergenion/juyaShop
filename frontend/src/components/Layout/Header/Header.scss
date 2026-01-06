@@ -1,0 +1,53 @@
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 24px;
+
+  &__logo {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &__logo-text {
+    font-weight: bold;
+  }
+
+  &__nav {
+    flex-grow: 1;
+    display: flex;
+    gap: 16px;
+  }
+
+  &__nav-link {
+    color: inherit;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__cart-button {
+    position: relative;
+    color: inherit;
+  }
+
+  &__user-button {
+    color: inherit;
+  }
+
+  &__auth-button {
+    color: inherit;
+
+    &--register {
+      // Дополнительные стили для кнопки регистрации
+    }
+  }
+
+  &__menu {
+    // Стили для меню пользователя
+  }
+}
+

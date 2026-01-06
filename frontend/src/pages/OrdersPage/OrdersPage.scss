@@ -1,0 +1,73 @@
+.orders-page {
+  &__title {
+    margin-bottom: 24px;
+  }
+
+  &__empty {
+    // Стили для пустого состояния
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__order {
+    // Стили для карточки заказа
+  }
+
+  &__order-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  &__order-number {
+    // Стили для номера заказа
+  }
+
+  &__order-status {
+    // Стили для статуса заказа
+  }
+
+  &__order-date {
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 16px;
+  }
+
+  &__order-divider {
+    margin: 16px 0;
+  }
+
+  &__order-items {
+    // Стили для списка товаров в заказе
+  }
+
+  &__order-item {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__order-item-name {
+    // Стили для названия товара
+  }
+
+  &__order-item-price {
+    // Стили для цены товара
+  }
+
+  &__order-total {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__order-total-label {
+    // Стили для метки "Итого"
+  }
+
+  &__order-total-price {
+    // Стили для итоговой цены
+  }
+}
+

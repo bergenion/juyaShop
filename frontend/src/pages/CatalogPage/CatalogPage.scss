@@ -1,0 +1,48 @@
+.catalog-page {
+  &__title {
+    margin-bottom: 32px;
+  }
+
+  &__filters {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  &__filter {
+    &--search {
+      min-width: 200px;
+    }
+
+    &--category {
+      min-width: 200px;
+    }
+
+    &--sort {
+      min-width: 150px;
+    }
+
+    &--price-min,
+    &--price-max {
+      width: 120px;
+    }
+  }
+
+  &__loader {
+    display: flex;
+    justify-content: center;
+    padding: 64px 0;
+  }
+
+  &__products {
+    margin-bottom: 32px;
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+  }
+}
+

@@ -1,0 +1,42 @@
+.login-page {
+  display: flex;
+  justify-content: center;
+  padding: 64px 0;
+
+  &__card {
+    max-width: 400px;
+    width: 100%;
+  }
+
+  &__title {
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  &__error {
+    margin-bottom: 16px;
+  }
+
+  &__form {
+    // Стили для формы
+  }
+
+  &__field {
+    // Стили для полей ввода
+  }
+
+  &__submit {
+    margin-top: 24px;
+    margin-bottom: 16px;
+  }
+
+  &__footer {
+    text-align: center;
+  }
+
+  &__link {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+

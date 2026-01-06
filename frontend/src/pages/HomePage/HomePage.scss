@@ -1,0 +1,42 @@
+.home-page {
+  &__hero {
+    text-align: center;
+    padding: 64px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    color: white;
+    margin-bottom: 48px;
+  }
+
+  &__hero-title {
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+
+  &__hero-subtitle {
+    margin-bottom: 32px;
+  }
+
+  &__hero-button {
+    background-color: white;
+    color: #667eea;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+  }
+
+  &__new-products {
+    margin-bottom: 48px;
+  }
+
+  &__new-products-title {
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  &__new-products-grid {
+    // Стили для сетки товаров
+  }
+}
+
