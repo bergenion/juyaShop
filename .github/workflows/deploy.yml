@@ -1,0 +1,51 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main  # Измените на вашу основную ветку
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'README.md'
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: self-hosted  # Используем self-hosted runner на вашем Windows сервере
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Stop containers
+        run: docker-compose down
+        shell: powershell
+        working-directory: ${{ github.workspace }}
+
+      - name: Build and start containers
+        run: |
+          docker-compose build --no-cache
+          docker-compose up -d
+        shell: powershell
+        working-directory: ${{ github.workspace }}
+
+      - name: Run database migrations
+        run: docker exec juya-shop-backend npx prisma migrate deploy
+        shell: powershell
+        continue-on-error: true
+
+      - name: Clean up old images
+        run: docker image prune -f
+        shell: powershell
+
+      - name: Verify deployment
+        run: |
+          Start-Sleep -Seconds 10
+          $response = Invoke-WebRequest -Uri "http://localhost/api/health" -UseBasicParsing
+          if ($response.StatusCode -ne 200) {
+            Write-Error "Health check failed"
+            exit 1
+          }
+        shell: powershell
+
