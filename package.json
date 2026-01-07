@@ -13,7 +13,6 @@
     "build:frontend": "cd frontend && npm run build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
-    "sass-embedded": "^1.97.2"
+    "concurrently": "^8.2.2"
   }
 }
