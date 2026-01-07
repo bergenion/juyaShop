@@ -9,7 +9,9 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Устанавливаем зависимости
-RUN npm ci
+# Используем npm install вместо npm ci, так как package-lock.json может отсутствовать
+# в backend директории при использовании npm workspaces
+RUN npm install
 
 # Копируем исходный код
 COPY . .
@@ -30,7 +32,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci --only=production && npx prisma generate
+RUN npm install --only=production && npx prisma generate
 
 # Копируем собранное приложение из builder
 COPY --from=builder /app/dist ./dist

@@ -8,7 +8,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm ci
+# Используем npm install для совместимости с npm workspaces
+# npm ci требует валидный package-lock.json, который может отсутствовать
+# в поддиректориях при использовании workspaces
+RUN npm install
 
 # Копируем исходный код
 COPY . .
