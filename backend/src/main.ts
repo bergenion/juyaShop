@@ -11,14 +11,19 @@ async function bootstrap() {
   app.use(cookieParser());
   
   // Настройка статической раздачи файлов
-  // В dev режиме __dirname = backend/src, в prod = backend/dist
-  const uploadsPath = process.env.NODE_ENV === 'production' 
-    ? join(__dirname, '..', 'uploads')
-    : join(process.cwd(), 'uploads');
+  // В dev режиме и prod: рабочая директория должна содержать uploads
+  // В Docker рабочая директория = /app, uploads монтируется в /app/uploads
+  const uploadsPath = join(process.cwd(), 'uploads');
+  
+  console.log(`📁 Путь к загруженным файлам: ${uploadsPath}`);
+  console.log(`📁 NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`📁 process.cwd(): ${process.cwd()}`);
   
   app.useStaticAssets(uploadsPath, {
     prefix: '/uploads',
   });
+  
+  console.log(`✅ Статические файлы настроены на: /uploads`);
   
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
