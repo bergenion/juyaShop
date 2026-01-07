@@ -54,6 +54,8 @@ const AdminPage = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [deleteOrderDialogOpen, setDeleteOrderDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<{ id: string; clientName: string } | null>(null);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
   const [orderSortField, setOrderSortField] = useState<string | null>(null);
@@ -111,6 +113,36 @@ const AdminPage = () => {
     },
   });
 
+  // Функция для получения русского названия статуса
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING: 'Ожидает обработки',
+      PROCESSING: 'В обработке',
+      SHIPPED: 'Отправлен',
+      DELIVERED: 'Доставлен',
+      CANCELLED: 'Отменен',
+    };
+    return labels[status] || status;
+  };
+
+  // Функция для получения цвета статуса
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return 'warning';
+      case 'PROCESSING':
+        return 'info';
+      case 'SHIPPED':
+        return 'primary';
+      case 'DELIVERED':
+        return 'success';
+      case 'CANCELLED':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
       return productsApi.delete(id);
@@ -128,6 +160,18 @@ const AdminPage = () => {
     },
   });
 
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return ordersApi.delete(id);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['orders', 'admin'] });
+      setDeleteOrderDialogOpen(false);
+      setOrderToDelete(null);
+    },
+  });
+
   const handleDeleteClick = (product: Product) => {
     setProductToDelete(product);
     setDeleteDialogOpen(true);
@@ -142,6 +186,25 @@ const AdminPage = () => {
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setProductToDelete(null);
+  };
+
+  const handleDeleteOrderClick = (order: { id: string; firstName: string; lastName: string }) => {
+    setOrderToDelete({
+      id: order.id,
+      clientName: `${order.firstName} ${order.lastName}`,
+    });
+    setDeleteOrderDialogOpen(true);
+  };
+
+  const handleDeleteOrderConfirm = () => {
+    if (orderToDelete) {
+      deleteOrderMutation.mutate(orderToDelete.id);
+    }
+  };
+
+  const handleDeleteOrderCancel = () => {
+    setDeleteOrderDialogOpen(false);
+    setOrderToDelete(null);
   };
 
   const handleSort = (field: string) => {
@@ -567,29 +630,45 @@ const AdminPage = () => {
                     </TableCell>
                     <TableCell>{order.total.toLocaleString('ru-RU')} ₽</TableCell>
                     <TableCell>
-                      <Chip label={order.status} size="small" className="admin-page__status-chip" />
+                      <Chip 
+                        label={getStatusLabel(order.status)} 
+                        color={getStatusColor(order.status) as any}
+                        size="small" 
+                        className="admin-page__status-chip" 
+                      />
                     </TableCell>
                     <TableCell>
                       {new Date(order.createdAt).toLocaleDateString('ru-RU')}
                     </TableCell>
                     <TableCell>
-                      <FormControl size="small" className="admin-page__status-select">
-                        <Select
-                          value={order.status}
-                          onChange={(e) =>
-                            updateOrderStatusMutation.mutate({
-                              id: order.id,
-                              status: e.target.value,
-                            })
-                          }
-                        >
-                          <MenuItem value="PENDING">PENDING</MenuItem>
-                          <MenuItem value="PROCESSING">PROCESSING</MenuItem>
-                          <MenuItem value="SHIPPED">SHIPPED</MenuItem>
-                          <MenuItem value="DELIVERED">DELIVERED</MenuItem>
-                          <MenuItem value="CANCELLED">CANCELLED</MenuItem>
-                        </Select>
-                      </FormControl>
+                      <Box className="admin-page__actions admin-page__actions--orders">
+                        <FormControl size="small" className="admin-page__status-select">
+                          <Select
+                            value={order.status}
+                            onChange={(e) =>
+                              updateOrderStatusMutation.mutate({
+                                id: order.id,
+                                status: e.target.value, // Отправляем английское значение
+                              })
+                            }
+                          >
+                            <MenuItem value="PENDING">{getStatusLabel('PENDING')}</MenuItem>
+                            <MenuItem value="PROCESSING">{getStatusLabel('PROCESSING')}</MenuItem>
+                            <MenuItem value="SHIPPED">{getStatusLabel('SHIPPED')}</MenuItem>
+                            <MenuItem value="DELIVERED">{getStatusLabel('DELIVERED')}</MenuItem>
+                            <MenuItem value="CANCELLED">{getStatusLabel('CANCELLED')}</MenuItem>
+                          </Select>
+                        </FormControl>
+                        <Tooltip title="Удалить заказ" arrow>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteOrderClick(order)}
+                            className="admin-page__delete-button"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -757,6 +836,35 @@ const AdminPage = () => {
             disabled={deleteProductMutation.isPending}
           >
             {deleteProductMutation.isPending ? 'Удаление...' : 'Да'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteOrderDialogOpen}
+        onClose={handleDeleteOrderCancel}
+        className="admin-page__delete-dialog"
+      >
+        <DialogTitle className="admin-page__delete-dialog-title">
+          Подтверждение удаления
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Вы уверены, что хотите удалить заказ клиента {orderToDelete?.clientName}?
+          </Typography>
+        </DialogContent>
+        <DialogActions className="admin-page__delete-dialog-actions">
+          <Button onClick={handleDeleteOrderCancel} className="admin-page__delete-dialog-cancel">
+            Нет
+          </Button>
+          <Button
+            onClick={handleDeleteOrderConfirm}
+            variant="contained"
+            color="error"
+            className="admin-page__delete-dialog-confirm"
+            disabled={deleteOrderMutation.isPending}
+          >
+            {deleteOrderMutation.isPending ? 'Удаление...' : 'Да'}
           </Button>
         </DialogActions>
       </Dialog>

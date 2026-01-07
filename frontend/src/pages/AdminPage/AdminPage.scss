@@ -41,6 +41,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
+
+    &--orders {
+      justify-content: space-between;
+      width: 100%;
+    }
   }
 
   &__edit-button {

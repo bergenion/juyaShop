@@ -135,5 +135,12 @@ export class OrdersService {
       },
     });
   }
+
+  async remove(id: string) {
+    await this.findOne(id, '', true);
+    return this.prisma.order.delete({
+      where: { id },
+    });
+  }
 }
 

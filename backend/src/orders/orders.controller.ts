@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Patch,
+  Delete,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -42,6 +43,13 @@ export class OrdersController {
   @Roles(UserRole.ADMIN)
   updateStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.ordersService.updateStatus(id, status);
+  }
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  remove(@Param('id') id: string) {
+    return this.ordersService.remove(id);
   }
 }
 
