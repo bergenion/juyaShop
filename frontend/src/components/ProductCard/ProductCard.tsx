@@ -15,7 +15,7 @@ const ProductCard = ({ product, imageHeight = 250 }: ProductCardProps) => {
 
   // Формируем массив всех изображений товара
   const allImages = (() => {
-    const images = [];
+    const images: string[] = [];
     if (product.image) {
       images.push(product.image);
     }

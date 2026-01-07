@@ -32,7 +32,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsApi, Product } from '../../api/products';
-import { ordersApi, Order } from '../../api/orders';
+import { ordersApi } from '../../api/orders';
 import './AdminPage.scss';
 
 const AdminPage = () => {

@@ -13,7 +13,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { productsApi } from '../../api/products';
 import { cartApi } from '../../api/cart';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
@@ -27,7 +27,6 @@ const ProductPage = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -94,7 +93,7 @@ const ProductPage = () => {
     if (!product) {
       return ['/placeholder.jpg'];
     }
-    const images = [];
+    const images: string[] = [];
     if (product.image) {
       images.push(product.image);
     }

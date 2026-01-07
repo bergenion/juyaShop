@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cartApi } from '../../api/cart';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
-import { setCart, removeItem, updateQuantity } from '../../store/slices/cartSlice';
+import { setCart, removeItem } from '../../store/slices/cartSlice';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import './CartPage.scss';
