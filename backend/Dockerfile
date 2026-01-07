@@ -9,9 +9,9 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Устанавливаем зависимости
-# Используем npm install вместо npm ci, так как package-lock.json может отсутствовать
-# в backend директории при использовании npm workspaces
-RUN npm install
+# Используем npm ci для более быстрой и надежной установки
+# Если package-lock.json отсутствует, используем npm install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Копируем исходный код
 COPY . .

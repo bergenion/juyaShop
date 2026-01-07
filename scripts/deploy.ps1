@@ -44,8 +44,9 @@ try {
 
 # Пересобираем образы
 Write-Host "[3/5] Пересборка Docker образов..." -ForegroundColor Yellow
+Write-Host "Используется кэш для ускорения сборки. Для полной пересборки используйте: docker-compose build --no-cache" -ForegroundColor Gray
 try {
-    docker-compose build --no-cache
+    docker-compose build
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Ошибка при сборке образов" -ForegroundColor Red
         exit 1

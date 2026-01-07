@@ -20,11 +20,21 @@ jobs:
 
       - name: Create .env file
         run: |
-          "DATABASE_URL=${{ secrets.DATABASE_URL }}" | Out-File -FilePath .env -Encoding utf8
-          "JWT_SECRET=${{ secrets.JWT_SECRET }}" | Add-Content -Path .env -Encoding utf8
-          "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" | Add-Content -Path .env -Encoding utf8
+          if (Test-Path .env) {
+            Write-Host ".env file already exists, using existing file"
+          } else {
+            Write-Host "Creating .env file from secrets..."
+            $envContent = @"
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          "@
+            $envContent | Out-File -FilePath .env -Encoding utf8 -NoNewline
+            Write-Host ".env file created"
+          }
         shell: powershell
         working-directory: ${{ github.workspace }}
+        continue-on-error: true
 
       - name: Stop containers
         run: docker-compose down || exit 0
@@ -33,7 +43,9 @@ jobs:
 
       - name: Build and start containers
         run: |
-          docker-compose build --no-cache
+          # Используем кэш для ускорения сборки
+          # --no-cache используйте только при необходимости полной пересборки
+          docker-compose build
           docker-compose up -d
         shell: powershell
         working-directory: ${{ github.workspace }}
