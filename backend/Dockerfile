@@ -35,10 +35,13 @@ COPY prisma ./prisma/
 RUN npm install --only=production && npx prisma generate
 
 # Устанавливаем wget для healthcheck и openssl для Prisma
-# Prisma требует libssl.so.1.1, создаем символическую ссылку если нужно
+# Prisma требует libssl.so.1.1 и libcrypto.so.1.1, создаем символические ссылки
 RUN apk add --no-cache wget openssl && \
-    if [ ! -f /lib/libssl.so.1.1 ] && [ -f /usr/lib/libssl.so.3 ]; then \
+    if [ -f /usr/lib/libssl.so.3 ] && [ ! -f /lib/libssl.so.1.1 ]; then \
         ln -s /usr/lib/libssl.so.3 /lib/libssl.so.1.1 || true; \
+    fi && \
+    if [ -f /usr/lib/libcrypto.so.3 ] && [ ! -f /lib/libcrypto.so.1.1 ]; then \
+        ln -s /usr/lib/libcrypto.so.3 /lib/libcrypto.so.1.1 || true; \
     fi
 
 # Создаем директорию для загруженных файлов
