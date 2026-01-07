@@ -34,8 +34,8 @@ COPY prisma ./prisma/
 
 RUN npm install --only=production && npx prisma generate
 
-# Устанавливаем wget для healthcheck
-RUN apk add --no-cache wget
+# Устанавливаем wget для healthcheck и openssl для Prisma
+RUN apk add --no-cache wget openssl1.1-compat
 
 # Создаем директорию для загруженных файлов
 RUN mkdir -p uploads/products
