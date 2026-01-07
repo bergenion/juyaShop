@@ -1,5 +1,11 @@
 # Многоэтапная сборка для оптимизации размера образа
-FROM node:20-alpine AS builder
+# Используем Debian вместо Alpine для совместимости с Prisma и OpenSSL 1.1
+FROM node:20-slim AS builder
+
+# Устанавливаем зависимости для сборки Prisma
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 make g++ openssl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -23,7 +29,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Продакшн образ
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -35,14 +41,10 @@ COPY prisma ./prisma/
 RUN npm install --only=production && npx prisma generate
 
 # Устанавливаем wget для healthcheck и openssl для Prisma
-# Prisma требует libssl.so.1.1 и libcrypto.so.1.1, создаем символические ссылки
-RUN apk add --no-cache wget openssl && \
-    if [ -f /usr/lib/libssl.so.3 ] && [ ! -f /lib/libssl.so.1.1 ]; then \
-        ln -s /usr/lib/libssl.so.3 /lib/libssl.so.1.1 || true; \
-    fi && \
-    if [ -f /usr/lib/libcrypto.so.3 ] && [ ! -f /lib/libcrypto.so.1.1 ]; then \
-        ln -s /usr/lib/libcrypto.so.3 /lib/libcrypto.so.1.1 || true; \
-    fi
+# В Debian OpenSSL 1.1 доступен по умолчанию
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget ca-certificates openssl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Создаем директорию для загруженных файлов
 RUN mkdir -p uploads/products
@@ -51,8 +53,8 @@ RUN mkdir -p uploads/products
 COPY --from=builder /app/dist ./dist
 
 # Устанавливаем пользователя для безопасности
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001
+RUN groupadd -r nodejs -g 1001 && \
+    useradd -r -u 1001 -g nodejs nestjs
 
 # Создаем entrypoint скрипт прямо в образе ПОСЛЕ всех копирований
 # Это гарантирует, что файл всегда будет создан с правильными line endings
