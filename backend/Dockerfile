@@ -49,13 +49,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Создаем entrypoint скрипт прямо в образе ПОСЛЕ всех копирований
 # Это гарантирует, что файл всегда будет создан с правильными line endings
-RUN cat > /app/entrypoint.sh << 'ENDOFFILE'
-#!/bin/sh
-set -e
-
-echo "Запуск приложения..."
-exec node dist/src/main.js
-ENDOFFILE
+RUN printf '#!/bin/sh\necho "Запуск приложения..."\nexec node dist/src/main.js\n' > /app/entrypoint.sh
 
 # Устанавливаем права на все файлы, включая entrypoint
 # Проверяем, что dist/src/main.js существует (из-за rootDir: "src" в package.json)
