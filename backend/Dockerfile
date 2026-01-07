@@ -68,7 +68,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # Устанавливаем права на файлы и убеждаемся, что entrypoint.sh существует
 RUN chown -R nestjs:nodejs /app && \
     ls -la /app/entrypoint.sh && \
-    file /app/entrypoint.sh
+    test -f /app/entrypoint.sh && \
+    test -x /app/entrypoint.sh
 
 USER nestjs
 
