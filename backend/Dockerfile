@@ -40,10 +40,16 @@ RUN apk add --no-cache wget
 # Создаем директорию для загруженных файлов
 RUN mkdir -p uploads/products
 
-# Создаем entrypoint скрипт прямо в образе
+# Копируем собранное приложение из builder
+COPY --from=builder /app/dist ./dist
+
+# Устанавливаем пользователя для безопасности
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
+# Создаем entrypoint скрипт прямо в образе ПОСЛЕ всех копирований
 # Это гарантирует, что файл всегда будет создан с правильными line endings
-RUN cat > /app/entrypoint.sh << 'EOF' && \
-    chmod +x /app/entrypoint.sh
+RUN cat > /app/entrypoint.sh << 'EOF'
 #!/bin/sh
 
 # Выполняем миграции (они будут повторяться безопасно, если уже выполнены)
@@ -58,18 +64,13 @@ echo "Запуск приложения..."
 exec node dist/main.js
 EOF
 
-# Копируем собранное приложение из builder
-COPY --from=builder /app/dist ./dist
-
-# Устанавливаем пользователя для безопасности
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001
-
-# Устанавливаем права на файлы и убеждаемся, что entrypoint.sh существует
-RUN chown -R nestjs:nodejs /app && \
+# Устанавливаем права на все файлы, включая entrypoint
+RUN chmod +x /app/entrypoint.sh && \
+    chown -R nestjs:nodejs /app && \
     ls -la /app/entrypoint.sh && \
     test -f /app/entrypoint.sh && \
-    test -x /app/entrypoint.sh
+    test -x /app/entrypoint.sh && \
+    head -n 1 /app/entrypoint.sh
 
 USER nestjs
 
@@ -77,5 +78,6 @@ USER nestjs
 EXPOSE 3000
 
 # Запускаем приложение через entrypoint
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Используем sh для запуска, чтобы избежать проблем с интерпретатором
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
 
