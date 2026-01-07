@@ -26,9 +26,18 @@ async function bootstrap() {
   console.log(`✅ Статические файлы настроены на: /uploads`);
   
   // CORS настройки: разрешаем запросы с фронтенда и отправку cookies
+  const isProduction = process.env.NODE_ENV === 'production';
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  
   app.enableCors({
     origin: (origin, callback) => {
+      // В production разрешаем все origins (так как фронтенд может быть на любом домене/IP)
+      if (isProduction) {
+        callback(null, true);
+        return;
+      }
+      
+      // В dev режиме разрешаем только определенные origins
       // Разрешаем запросы без origin (например, из мобильных приложений) или с разрешенного origin
       if (!origin || origin === frontendUrl || origin.includes('localhost') || origin.includes('127.0.0.1')) {
         callback(null, true);
@@ -41,6 +50,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Set-Cookie'],
   });
+  
+  console.log(`🌐 CORS настроен: ${isProduction ? 'разрешены все origins (production)' : `разрешен ${frontendUrl} и localhost (dev)`}`);
 
   app.setGlobalPrefix('api');
   
