@@ -49,28 +49,22 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Создаем entrypoint скрипт прямо в образе ПОСЛЕ всех копирований
 # Это гарантирует, что файл всегда будет создан с правильными line endings
-RUN cat > /app/entrypoint.sh << 'EOF'
+RUN cat > /app/entrypoint.sh << 'ENDOFFILE'
 #!/bin/sh
+set -e
 
-# Выполняем миграции (они будут повторяться безопасно, если уже выполнены)
-echo "Выполнение миграций базы данных..."
-npx prisma migrate deploy || {
-  echo "Предупреждение: Миграции не выполнены, возможно база данных еще не готова"
-  echo "Приложение запустится, но миграции нужно выполнить вручную"
-}
-
-# Запускаем приложение
 echo "Запуск приложения..."
 exec node dist/main.js
-EOF
+ENDOFFILE
 
 # Устанавливаем права на все файлы, включая entrypoint
+# Проверяем, что dist/main.js существует
 RUN chmod +x /app/entrypoint.sh && \
     chown -R nestjs:nodejs /app && \
     ls -la /app/entrypoint.sh && \
-    test -f /app/entrypoint.sh && \
-    test -x /app/entrypoint.sh && \
-    head -n 1 /app/entrypoint.sh
+    ls -la /app/dist/ && \
+    test -f /app/dist/main.js && \
+    echo "Entrypoint и main.js найдены успешно"
 
 USER nestjs
 
