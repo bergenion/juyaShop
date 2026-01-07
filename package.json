@@ -1,7 +1,7 @@
 {
   "name": "juyashop",
   "version": "1.0.0",
-  "description": "Juya Shop - Интернет-магазин",
+  "description": "Истоки Леса - Интернет-магазин",
   "private": true,
   "scripts": {
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",

@@ -34,16 +34,16 @@ const RegisterPage = () => {
   const registerMutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: async (data) => {
+      // Устанавливаем авторизацию в Redux
       dispatch(setCredentials({ user: data.user }));
       
-      // Синхронизируем локальную корзину с серверной
-      await syncLocalCartToServer();
+      // Синхронизируем локальную корзину с серверной и получаем обновленную корзину
+      const syncedCart = await syncLocalCartToServer();
       
-      // Обновляем корзину в store
-      const cart = await cartApi.getCart();
-      dispatch(setCart(cart));
+      // Обновляем корзину в Redux store с синхронизированными данными
+      dispatch(setCart(syncedCart));
       
-      // Инвалидируем кэш корзины
+      // Инвалидируем кэш корзины для React Query
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       
       navigate('/');

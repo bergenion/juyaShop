@@ -36,8 +36,9 @@ export interface AddToCartData {
 
 // Проверка авторизации
 const isAuthenticated = (): boolean => {
-  // Проверяем наличие токена в cookies
-  return document.cookie.includes('token=');
+  // Проверяем наличие токена в localStorage
+  const token = localStorage.getItem('auth_token');
+  return !!token;
 };
 
 export const cartApi = {

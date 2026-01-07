@@ -1,0 +1,6 @@
+# Изображения в этой папке импортируются в компонентах
+# Пример использования:
+# import logo from '../assets/images/logo.png';
+# <img src={logo} alt="Logo" />
+
+
