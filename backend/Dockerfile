@@ -34,14 +34,29 @@ COPY prisma ./prisma/
 
 RUN npm install --only=production && npx prisma generate
 
-# Устанавливаем wget для healthcheck и prisma для миграций
+# Устанавливаем wget для healthcheck
 RUN apk add --no-cache wget
 
 # Создаем директорию для загруженных файлов
 RUN mkdir -p uploads/products
 
-# Копируем entrypoint скрипт (до создания пользователя)
-COPY entrypoint.sh /app/entrypoint.sh
+# Создаем entrypoint скрипт прямо в образе
+# Это гарантирует, что файл всегда будет создан с правильными line endings
+RUN cat > /app/entrypoint.sh << 'EOF' && \
+    chmod +x /app/entrypoint.sh
+#!/bin/sh
+
+# Выполняем миграции (они будут повторяться безопасно, если уже выполнены)
+echo "Выполнение миграций базы данных..."
+npx prisma migrate deploy || {
+  echo "Предупреждение: Миграции не выполнены, возможно база данных еще не готова"
+  echo "Приложение запустится, но миграции нужно выполнить вручную"
+}
+
+# Запускаем приложение
+echo "Запуск приложения..."
+exec node dist/main.js
+EOF
 
 # Копируем собранное приложение из builder
 COPY --from=builder /app/dist ./dist
@@ -51,9 +66,9 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
 # Устанавливаем права на файлы и убеждаемся, что entrypoint.sh существует
-RUN chmod +x /app/entrypoint.sh && \
-    chown -R nestjs:nodejs /app && \
-    ls -la /app/entrypoint.sh || echo "ERROR: entrypoint.sh not found!"
+RUN chown -R nestjs:nodejs /app && \
+    ls -la /app/entrypoint.sh && \
+    file /app/entrypoint.sh
 
 USER nestjs
 
