@@ -25,6 +25,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { compressUploadedImage } from '../utils/image-compression';
+import { join } from 'path';
 
 @Controller('products')
 export class ProductsController {
@@ -54,7 +56,7 @@ export class ProductsController {
       },
     }),
   )
-  create(
+  async create(
     @Body(new ValidationPipe({ whitelist: false, transform: false })) body: any,
     @UploadedFiles() files?: Express.Multer.File[],
   ) {
@@ -75,9 +77,23 @@ export class ProductsController {
       images: [],
     };
 
-    // Обработка загруженных файлов
+    // Обработка загруженных файлов с автоматическим сжатием
     if (files && files.length > 0) {
-      const imagePaths = files.map((file) => `/uploads/products/${file.filename}`);
+      // Сжимаем все загруженные изображения
+      const compressionPromises = files.map(async (file) => {
+        const filePath = join('./uploads/products', file.filename);
+        try {
+          const result = await compressUploadedImage(filePath);
+          console.log(`✅ Изображение ${file.filename} сжато: ${(result.originalSize / 1024).toFixed(2)} KB → ${(result.compressedSize / 1024).toFixed(2)} KB (сэкономлено ${((result.saved / result.originalSize) * 100).toFixed(1)}%)`);
+          return `/uploads/products/${file.filename}`;
+        } catch (error) {
+          console.error(`❌ Ошибка при сжатии ${file.filename}:`, error);
+          // В случае ошибки возвращаем путь к оригинальному файлу
+          return `/uploads/products/${file.filename}`;
+        }
+      });
+      
+      const imagePaths = await Promise.all(compressionPromises);
       createProductDto.image = imagePaths[0]; // Первое изображение - основное
       createProductDto.images = imagePaths; // Все изображения в массив
     } else if (body.image) {
@@ -126,7 +142,7 @@ export class ProductsController {
       },
     }),
   )
-  update(
+  async update(
     @Param('id') id: string,
     @Body(new ValidationPipe({ whitelist: false, transform: false })) body: any,
     @UploadedFiles() files?: Express.Multer.File[],
@@ -143,9 +159,23 @@ export class ProductsController {
       updateProductDto.isActive = body.isActive === 'true' || body.isActive === true;
     }
 
-    // Обработка загруженных файлов
+    // Обработка загруженных файлов с автоматическим сжатием
     if (files && files.length > 0) {
-      const imagePaths = files.map((file) => `/uploads/products/${file.filename}`);
+      // Сжимаем все загруженные изображения
+      const compressionPromises = files.map(async (file) => {
+        const filePath = join('./uploads/products', file.filename);
+        try {
+          const result = await compressUploadedImage(filePath);
+          console.log(`✅ Изображение ${file.filename} сжато: ${(result.originalSize / 1024).toFixed(2)} KB → ${(result.compressedSize / 1024).toFixed(2)} KB (сэкономлено ${((result.saved / result.originalSize) * 100).toFixed(1)}%)`);
+          return `/uploads/products/${file.filename}`;
+        } catch (error) {
+          console.error(`❌ Ошибка при сжатии ${file.filename}:`, error);
+          // В случае ошибки возвращаем путь к оригинальному файлу
+          return `/uploads/products/${file.filename}`;
+        }
+      });
+      
+      const imagePaths = await Promise.all(compressionPromises);
       updateProductDto.image = imagePaths[0]; // Первое изображение - основное
       updateProductDto.images = imagePaths; // Все изображения в массив
     } else if (body.image !== undefined) {
