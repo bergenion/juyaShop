@@ -20,11 +20,9 @@ jobs:
 
       - name: Create .env file
         run: |
-          @"
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-          "@ | Out-File -FilePath .env -Encoding utf8
+          "DATABASE_URL=${{ secrets.DATABASE_URL }}" | Out-File -FilePath .env -Encoding utf8
+          "JWT_SECRET=${{ secrets.JWT_SECRET }}" | Add-Content -Path .env -Encoding utf8
+          "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" | Add-Content -Path .env -Encoding utf8
         shell: powershell
         working-directory: ${{ github.workspace }}
 
