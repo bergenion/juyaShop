@@ -3,7 +3,7 @@ name: Deploy to Production
 on:
   push:
     branches:
-      - main  # Измените на вашу основную ветку
+      - main
     paths-ignore:
       - '**.md'
       - '.gitignore'
@@ -12,14 +12,24 @@ on:
 jobs:
   deploy:
     name: Deploy to Production Server
-    runs-on: self-hosted  # Используем self-hosted runner на вашем Windows сервере
+    runs-on: self-hosted
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Create .env file
+        run: |
+          @"
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          "@ | Out-File -FilePath .env -Encoding utf8
+        shell: powershell
+        working-directory: ${{ github.workspace }}
+
       - name: Stop containers
-        run: docker-compose down
+        run: docker-compose down || exit 0
         shell: powershell
         working-directory: ${{ github.workspace }}
 
@@ -48,4 +58,3 @@ jobs:
             exit 1
           }
         shell: powershell
-
