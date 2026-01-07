@@ -54,16 +54,16 @@ RUN cat > /app/entrypoint.sh << 'ENDOFFILE'
 set -e
 
 echo "Запуск приложения..."
-exec node dist/main.js
+exec node dist/src/main.js
 ENDOFFILE
 
 # Устанавливаем права на все файлы, включая entrypoint
-# Проверяем, что dist/main.js существует
+# Проверяем, что dist/src/main.js существует (из-за rootDir: "src" в package.json)
 RUN chmod +x /app/entrypoint.sh && \
     chown -R nestjs:nodejs /app && \
     ls -la /app/entrypoint.sh && \
-    ls -la /app/dist/ && \
-    test -f /app/dist/main.js && \
+    ls -la /app/dist/src/ && \
+    test -f /app/dist/src/main.js && \
     echo "Entrypoint и main.js найдены успешно"
 
 USER nestjs
