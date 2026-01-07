@@ -8,14 +8,22 @@ import {
   Divider,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import { Navigate } from 'react-router-dom';
 import { ordersApi } from '../../api/orders';
 import './OrdersPage.scss';
 
 const OrdersPage = () => {
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders, isLoading, error } = useQuery({
     queryKey: ['orders'],
     queryFn: ordersApi.getAll,
+    retry: false,
+    throwOnError: false,
   });
+
+  // Если ошибка авторизации - редиректим на страницу входа
+  if (error && (error as any).response?.status === 401) {
+    return <Navigate to="/login" replace state={{ returnTo: '/orders' }} />;
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {

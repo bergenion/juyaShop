@@ -63,23 +63,26 @@ const ProductPage = () => {
   const addToCartMutation = useMutation({
     mutationFn: cartApi.addToCart,
     onSuccess: async () => {
-      if (isAuthenticated) {
-        const cart = await cartApi.getCart();
-        dispatch(setCart(cart));
-      }
+      // Обновляем корзину в store независимо от авторизации
+      const cart = await cartApi.getCart();
+      dispatch(setCart(cart));
       setMessage('Товар добавлен в корзину!');
       setTimeout(() => setMessage(null), 3000);
     },
-    onError: () => {
-      setMessage('Ошибка при добавлении товара');
+    onError: async (error: any) => {
+      // Если ошибка авторизации - все равно показываем успех (товар добавлен в локальную корзину)
+      if (error.response?.status === 401) {
+        const cart = await cartApi.getCart();
+        dispatch(setCart(cart));
+        setMessage('Товар добавлен в корзину!');
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        setMessage('Ошибка при добавлении товара');
+      }
     },
   });
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
     if (product) {
       addToCartMutation.mutate({
         productId: product.id,

@@ -1,0 +1,27 @@
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #2e7d32;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  transform: translateX(400px);
+  opacity: 0;
+  transition: transform 1s ease-out, opacity 1s ease-out;
+  min-width: 250px;
+  max-width: 400px;
+
+  &--visible {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  &__message {
+    font-weight: 500;
+    margin: 0;
+  }
+}
+

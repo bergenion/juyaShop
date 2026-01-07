@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -11,18 +11,20 @@ import {
   Alert,
   Divider,
 } from '@mui/material';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ordersApi, CreateOrderData } from '../../api/orders';
 import { cartApi } from '../../api/cart';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { clearCart } from '../../store/slices/cartSlice';
+import { authApi } from '../../api/auth';
 import './CheckoutPage.scss';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const { items, total } = useAppSelector((state) => state.cart);
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const [formData, setFormData] = useState<CreateOrderData>({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -33,19 +35,52 @@ const CheckoutPage = () => {
   });
   const [error, setError] = useState<string | null>(null);
 
+  // Проверяем авторизацию перед отправкой заказа
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { returnTo: '/cart/checkout' } });
+    }
+  }, [isAuthenticated, navigate]);
+
   const { data: cartData } = useQuery({
     queryKey: ['cart'],
     queryFn: cartApi.getCart,
   });
 
   const createOrderMutation = useMutation({
-    mutationFn: ordersApi.create,
+    mutationFn: async (data: CreateOrderData) => {
+      // Перед отправкой заказа проверяем авторизацию
+      try {
+        const currentUser = await authApi.getMe();
+        if (!currentUser) {
+          // Если пользователь не авторизован, инвалидируем кэш и перенаправляем
+          queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+          throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+        }
+      } catch (authError: any) {
+        if (authError.response?.status === 401 || authError.message?.includes('Сессия истекла')) {
+          throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+        }
+        throw authError;
+      }
+      
+      return ordersApi.create(data);
+    },
     onSuccess: () => {
       dispatch(clearCart());
       navigate('/orders');
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || 'Ошибка при оформлении заказа');
+      if (err.message?.includes('Сессия истекла') || err.response?.status === 401) {
+        // Если токен истек или невалидный - перенаправляем на логин
+        setError('Сессия истекла. Пожалуйста, войдите снова.');
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        setTimeout(() => {
+          navigate('/login', { state: { returnTo: '/cart/checkout' } });
+        }, 2000);
+      } else {
+        setError(err.response?.data?.message || err.message || 'Ошибка при оформлении заказа');
+      }
     },
   });
 

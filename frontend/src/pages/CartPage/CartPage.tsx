@@ -39,7 +39,8 @@ const CartPage = () => {
       setQuantities(qty);
       return cart;
     },
-    enabled: isAuthenticated,
+    // Загружаем корзину всегда (даже без авторизации - локальная корзина)
+    refetchOnMount: true,
   });
 
   const updateQuantityMutation = useMutation({
@@ -72,16 +73,8 @@ const CartPage = () => {
     dispatch(removeItem(itemId));
   };
 
-  if (!isAuthenticated) {
-    return (
-      <Alert severity="info" className="cart-page__auth-alert">
-        Пожалуйста, войдите в систему, чтобы просмотреть корзину.
-        <Button onClick={() => navigate('/login')} className="cart-page__auth-button">
-          Войти
-        </Button>
-      </Alert>
-    );
-  }
+  // Показываем корзину даже без авторизации (локальная корзина)
+  // При оформлении заказа потребуется авторизация
 
   if (isLoading) {
     return <Typography>Загрузка корзины...</Typography>;
@@ -170,11 +163,22 @@ const CartPage = () => {
                 variant="contained"
                 fullWidth
                 size="large"
-                onClick={() => navigate('/cart/checkout')}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    navigate('/cart/checkout');
+                  } else {
+                    navigate('/login', { state: { returnTo: '/cart/checkout' } });
+                  }
+                }}
                 className="cart-page__checkout-button"
               >
                 Оформить заказ
               </Button>
+              {!isAuthenticated && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Для оформления заказа необходимо войти в систему
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </Grid>

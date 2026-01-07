@@ -14,7 +14,8 @@ export const useAuth = () => {
     queryFn: authApi.getMe,
     retry: false,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true, // Важно: загружать пользователя при монтировании компонента
+    staleTime: Infinity, // Не считаем данные устаревшими, но все равно загружаем при монтировании
     // Ошибки не будут показываться в консоли, так как getMe возвращает null при 401
     throwOnError: false,
   });

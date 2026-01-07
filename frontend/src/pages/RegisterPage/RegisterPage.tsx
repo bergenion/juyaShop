@@ -9,15 +9,19 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi, RegisterData } from '../../api/auth';
 import { useAppDispatch } from '../../hooks/redux';
 import { setCredentials } from '../../store/slices/authSlice';
+import { setCart } from '../../store/slices/cartSlice';
+import { syncLocalCartToServer } from '../../utils/syncCart';
+import { cartApi } from '../../api/cart';
 import './RegisterPage.scss';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<RegisterData>({
     email: '',
     password: '',
@@ -29,8 +33,19 @@ const RegisterPage = () => {
 
   const registerMutation = useMutation({
     mutationFn: authApi.register,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       dispatch(setCredentials({ user: data.user }));
+      
+      // Синхронизируем локальную корзину с серверной
+      await syncLocalCartToServer();
+      
+      // Обновляем корзину в store
+      const cart = await cartApi.getCart();
+      dispatch(setCart(cart));
+      
+      // Инвалидируем кэш корзины
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      
       navigate('/');
     },
     onError: (err: any) => {

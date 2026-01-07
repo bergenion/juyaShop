@@ -35,11 +35,27 @@
 
   &__cart-button {
     position: relative;
-    color: inherit;
+    color: #ffffff !important;
+    
+    svg {
+      color: #ffffff !important;
+    }
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
   }
 
   &__user-button {
-    color: inherit;
+    color: #ffffff !important;
+    
+    svg {
+      color: #ffffff !important;
+    }
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
   }
 
   &__auth-button {
@@ -60,8 +76,5 @@
     }
   }
 
-  &__menu {
-    // Стили для меню пользователя
-  }
 }
 

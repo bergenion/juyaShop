@@ -18,7 +18,7 @@ const HomePage = () => {
           Браслеты · Минералы · Травы · Свечи.
         </Typography>
         <Typography variant="h4" component="h2" className="home-page__hero-subtitle">
-          JUYA SHOP — Магия Природы.
+        Истоки Леса — Магия Природы.
         </Typography>
         <Button
           component={Link}

@@ -18,10 +18,11 @@ export class AuthController {
     
     res.cookie('token', token, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
+      secure: isProduction, // В production должен быть true (HTTPS), в dev - false
+      sameSite: isProduction ? 'strict' : 'lax', // В dev используем 'lax' для работы с разными портами
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
       path: '/',
+      domain: isProduction ? undefined : undefined, // Не указываем domain для работы на localhost и разных IP
     });
   }
 
@@ -29,14 +30,16 @@ export class AuthController {
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.register(dto);
     this.setTokenCookie(res, result.token);
-    return { user: result.user };
+    // Также возвращаем токен в ответе для работы через localStorage
+    return { user: result.user, token: result.token };
   }
 
   @Post('login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
     this.setTokenCookie(res, result.token);
-    return { user: result.user };
+    // Также возвращаем токен в ответе для работы через localStorage
+    return { user: result.user, token: result.token };
   }
 
   @UseGuards(JwtAuthGuard)

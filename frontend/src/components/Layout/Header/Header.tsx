@@ -49,7 +49,7 @@ const Header = () => {
     <Box className="header">
       <Link to="/" className="header__logo">
         <Typography variant="h5" component="div" className="header__logo-text">
-          JUYA SHOP
+        Истоки Леса
         </Typography>
       </Link>
 
@@ -77,16 +77,21 @@ const Header = () => {
           component={Link}
           to="/cart"
           className="header__cart-button"
+          sx={{ color: '#ffffff' }}
         >
           <Badge badgeContent={cartItemsCount} color="secondary">
-            <ShoppingCartIcon />
+            <ShoppingCartIcon sx={{ color: '#ffffff' }} />
           </Badge>
         </IconButton>
 
         {isAuthenticated ? (
           <>
-            <IconButton onClick={handleMenuOpen} className="header__user-button">
-              <PersonIcon />
+            <IconButton 
+              onClick={handleMenuOpen} 
+              className="header__user-button"
+              sx={{ color: '#ffffff' }}
+            >
+              <PersonIcon sx={{ color: '#ffffff' }} />
             </IconButton>
             <Menu
               anchorEl={anchorEl}

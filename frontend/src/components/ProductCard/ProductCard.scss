@@ -24,6 +24,8 @@
 
   &__content {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   &__title {
@@ -38,7 +40,7 @@
   }
 
   &__description {
-    margin-bottom: 26px;
+    margin-bottom: auto;
     min-height: 40px;
     color: rgba(0, 0, 0, 0.6);
   }
@@ -47,20 +49,59 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-
-  &__price {
-    color: #2c3e50;
+    margin-top: auto;
+    padding-top: 12px;
+    gap: 8px;
   }
 
   &__stock {
+    flex-shrink: 0;
+    white-space: nowrap;
+    
     &--available {
       color: #2e7d32;
+      font-weight: 500;
     }
 
     &--unavailable {
       color: #d32f2f;
+      font-weight: 500;
     }
+  }
+
+  &__price {
+    color: #1c1c1c;
+  }
+
+  &__add-button {
+    color: #1976d2;
+    transition: transform 0.2s, background-color 0.2s, color 0.3s;
+
+    &:hover:not(:disabled) {
+      background-color: rgba(25, 118, 210, 0.1);
+      transform: scale(1.1);
+    }
+
+    &:disabled {
+      color: rgba(0, 0, 0, 0.26);
+    }
+
+    &--active {
+      color: #d32f2f !important;
+      animation: pulse 0.5s ease-in-out;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 

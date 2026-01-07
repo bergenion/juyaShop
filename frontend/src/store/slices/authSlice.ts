@@ -30,6 +30,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      // Токен удаляется в authApi.logout
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {

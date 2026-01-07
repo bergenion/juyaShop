@@ -2,10 +2,33 @@
   &__hero {
     text-align: center;
     padding: 64px 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-image: url('/images/forest.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     border-radius: 16px;
     color: white;
     margin-bottom: 48px;
+    position: relative;
+    
+    // Затемнение для лучшей читаемости текста
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 16px;
+      z-index: 0;
+    }
+    
+    // Текст должен быть поверх затемнения
+    > * {
+      position: relative;
+      z-index: 1;
+    }
   }
 
   &__hero-title {

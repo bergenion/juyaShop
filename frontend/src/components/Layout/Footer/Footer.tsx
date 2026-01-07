@@ -8,7 +8,7 @@ const Footer = () => {
         <Grid container spacing={4} className="footer__content">
           <Grid item xs={12} md={4} className="footer__section">
             <Typography variant="h6" className="footer__title">
-              JUYA SHOP
+            Истоки Леса
             </Typography>
             <Typography variant="body2" className="footer__text">
               Магия Природы. Браслеты · Минералы · Травы · Свечи.
@@ -40,7 +40,7 @@ const Footer = () => {
         </Grid>
         <Box className="footer__copyright">
           <Typography variant="body2" align="center">
-            © 2025 JUYA SHOP. Все права защищены.
+            © 2026 Истоки Леса. Все права защищены.
           </Typography>
         </Box>
       </Container>

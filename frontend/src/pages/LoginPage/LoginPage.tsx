@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -9,26 +9,46 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi, LoginData } from '../../api/auth';
 import { useAppDispatch } from '../../hooks/redux';
 import { setCredentials } from '../../store/slices/authSlice';
+import { setCart } from '../../store/slices/cartSlice';
+import { syncLocalCartToServer } from '../../utils/syncCart';
+import { cartApi } from '../../api/cart';
 import './LoginPage.scss';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<LoginData>({
     email: '',
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
 
+  // Получаем returnTo из state (если переход был с защищенной страницы)
+  const returnTo = (location.state as any)?.returnTo || '/';
+
   const loginMutation = useMutation({
     mutationFn: authApi.login,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       dispatch(setCredentials({ user: data.user }));
-      navigate('/');
+      
+      // Синхронизируем локальную корзину с серверной
+      await syncLocalCartToServer();
+      
+      // Обновляем корзину в store
+      const cart = await cartApi.getCart();
+      dispatch(setCart(cart));
+      
+      // Инвалидируем кэш корзины
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      
+      // Переходим на целевую страницу или главную
+      navigate(returnTo);
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Ошибка входа');

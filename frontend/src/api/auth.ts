@@ -1,4 +1,5 @@
 import { api } from './api';
+import { tokenStorage } from '../utils/tokenStorage';
 
 export interface RegisterData {
   email: string;
@@ -24,15 +25,25 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
+  token?: string; // Токен может быть в ответе
 }
 
 export const authApi = {
   register: async (data: RegisterData): Promise<AuthResponse> => {
     const response = await api.post('/auth/register', data);
+    // Сохраняем токен из cookies или из ответа
+    // Backend устанавливает cookie, но также может вернуть токен в ответе
+    if (response.data.token) {
+      tokenStorage.set(response.data.token);
+    }
     return response.data;
   },
   login: async (data: LoginData): Promise<AuthResponse> => {
     const response = await api.post('/auth/login', data);
+    // Сохраняем токен из cookies или из ответа
+    if (response.data.token) {
+      tokenStorage.set(response.data.token);
+    }
     return response.data;
   },
   getMe: async (): Promise<User | null> => {
@@ -50,7 +61,12 @@ export const authApi = {
     }
   },
   logout: async (): Promise<void> => {
-    await api.post('/auth/logout');
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      // Удаляем токен из localStorage в любом случае
+      tokenStorage.remove();
+    }
   },
 };
 

@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAppSelector } from './hooks/redux';
 import { useAuth } from './hooks/useAuth';
+import { useCart } from './hooks/useCart';
 import Layout from './components/Layout/Layout';
 import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
@@ -15,6 +16,7 @@ import CheckoutPage from './pages/CheckoutPage';
 
 function App() {
   useAuth(); // Инициализация пользователя из токена
+  useCart(); // Инициализация корзины (работает и для неавторизованных пользователей)
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   return (
