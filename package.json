@@ -1,20 +1,19 @@
 {
-  "name": "juya-shop",
+  "name": "juyashop",
   "version": "1.0.0",
-  "description": "Интернет-магазин для Юли",
+  "description": "Juya Shop - Интернет-магазин",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
   "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run start:dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "sass-embedded": "^1.97.2"
   }
 }
-

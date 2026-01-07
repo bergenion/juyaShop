@@ -20,7 +20,11 @@
   }
 
   &__nav-link {
-    color: inherit;
+    color: #ffffff !important;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
   }
 
   &__actions {
@@ -39,10 +43,20 @@
   }
 
   &__auth-button {
-    color: inherit;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
 
     &--register {
-      // Дополнительные стили для кнопки регистрации
+      border-color: #ffffff !important;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: #ffffff !important;
+      }
     }
   }
 

@@ -54,10 +54,20 @@ const Header = () => {
       </Link>
 
       <Box className="header__nav">
-        <Button component={Link} to="/" className="header__nav-link">
+        <Button 
+          component={Link} 
+          to="/" 
+          className="header__nav-link"
+          sx={{ color: '#ffffff' }}
+        >
           Главная
         </Button>
-        <Button component={Link} to="/catalog" className="header__nav-link">
+        <Button 
+          component={Link} 
+          to="/catalog" 
+          className="header__nav-link"
+          sx={{ color: '#ffffff' }}
+        >
           Каталог
         </Button>
       </Box>
@@ -100,7 +110,12 @@ const Header = () => {
           </>
         ) : (
           <>
-            <Button component={Link} to="/login" className="header__auth-button">
+            <Button 
+              component={Link} 
+              to="/login" 
+              className="header__auth-button"
+              sx={{ color: '#ffffff' }}
+            >
               Войти
             </Button>
             <Button
@@ -108,6 +123,14 @@ const Header = () => {
               to="/register"
               variant="outlined"
               className="header__auth-button header__auth-button--register"
+              sx={{ 
+                color: '#ffffff',
+                borderColor: '#ffffff',
+                '&:hover': {
+                  borderColor: '#ffffff',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
             >
               Регистрация
             </Button>

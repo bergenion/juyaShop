@@ -1,10 +1,11 @@
+version: '3.8'
+
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: production
-    container_name: juya-shop-backend
+    container_name: juyashop-backend
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -13,39 +14,29 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - PORT=3000
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+      - FRONTEND_URL=http://localhost:5173
     volumes:
-      # Монтируем папку uploads для сохранения загруженных файлов
       - ./backend/uploads:/app/uploads
     networks:
-      - juya-shop-network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - juyashop-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: production
-    container_name: juya-shop-frontend
+    container_name: juyashop-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "5173:80"
+    environment:
+      - API_URL=http://localhost:3000
+    networks:
+      - juyashop-network
     depends_on:
       - backend
-    networks:
-      - juya-shop-network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 networks:
-  juya-shop-network:
+  juyashop-network:
     driver: bridge
-
