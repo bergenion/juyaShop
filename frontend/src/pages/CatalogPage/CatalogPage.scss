@@ -12,21 +12,44 @@
 
   &__filter {
     &--search {
-      min-width: 200px;
+      min-width: 200px !important;
     }
 
     &--category {
-      min-width: 200px;
+      min-width: 130px !important;
     }
 
     &--sort {
-      min-width: 150px;
+      min-width: 130px !important;
     }
+  }
 
-    &--price-min,
-    &--price-max {
-      width: 120px;
-    }
+  &__price-filter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__price-label {
+    font-size: 0.875rem;
+    color: rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+  }
+
+  &__price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__price-input {
+    width: 100px !important;
+  }
+
+  &__price-separator {
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0 4px;
   }
 
   &__loader {
@@ -37,6 +60,10 @@
 
   &__products {
     margin-bottom: 32px;
+  }
+
+  &__product--hidden {
+    display: none !important;
   }
 
   &__pagination {

@@ -3,6 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 @Injectable()
 export class ProductsService {
@@ -24,12 +27,16 @@ export class ProductsService {
       sortOrder = 'desc',
       minPrice,
       maxPrice,
+      includeInactive,
     } = query;
 
     const skip = (page - 1) * limit;
-    const where: any = {
-      isActive: true,
-    };
+    const where: any = {};
+    
+    // Фильтруем по isActive только если не запрошены все товары (для админки)
+    if (!includeInactive) {
+      where.isActive = true;
+    }
 
     if (category) {
       where.category = category;
@@ -96,10 +103,44 @@ export class ProductsService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-    return this.prisma.product.update({
+    const product = await this.findOne(id);
+    
+    // Удаляем изображения товара из файловой системы
+    const imagesToDelete: string[] = [];
+    
+    if (product.image) {
+      imagesToDelete.push(product.image);
+    }
+    
+    if (product.images && product.images.length > 0) {
+      product.images.forEach((img) => {
+        if (img && !imagesToDelete.includes(img)) {
+          imagesToDelete.push(img);
+        }
+      });
+    }
+    
+    // Удаляем файлы изображений
+    for (const imagePath of imagesToDelete) {
+      // Извлекаем имя файла из пути (например, /uploads/products/product-123.jpg -> product-123.jpg)
+      if (imagePath.startsWith('/uploads/products/')) {
+        const filename = imagePath.replace('/uploads/products/', '');
+        const filePath = join(process.cwd(), 'uploads', 'products', filename);
+        
+        try {
+          if (existsSync(filePath)) {
+            await unlink(filePath);
+          }
+        } catch (error) {
+          console.error(`Ошибка при удалении файла ${filePath}:`, error);
+          // Продолжаем удаление даже если файл не найден
+        }
+      }
+    }
+    
+    // Удаляем товар из базы данных
+    return this.prisma.product.delete({
       where: { id },
-      data: { isActive: false },
     });
   }
 

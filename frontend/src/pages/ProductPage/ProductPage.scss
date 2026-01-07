@@ -1,6 +1,24 @@
 .product-page {
+  &__back-button {
+    margin-bottom: 16px;
+    color: rgba(0, 0, 0, 0.6);
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+
   &__image-card {
     position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 0 !important;
+  }
+
+  &__image-wrapper {
+    position: relative;
+    width: 100%;
+    display: block;
   }
 
   &__image {
@@ -11,21 +29,30 @@
   }
 
   &__nav-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(255, 255, 255, 0.8);
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    padding: 8px !important;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.9);
+      background-color: rgba(255, 255, 255, 0.9) !important;
     }
 
     &--prev {
-      left: 8px;
+      left: 16px !important;
+      right: auto !important;
+      top: 50% !important;
+      bottom: auto !important;
     }
 
     &--next {
-      right: 8px;
+      right: 16px !important;
+      left: auto !important;
+      top: 50% !important;
+      bottom: auto !important;
     }
   }
 

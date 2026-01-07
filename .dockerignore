@@ -1,0 +1,26 @@
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+coverage
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Backend specific
+backend/uploads
+backend/dist
+backend/coverage
+
+# Frontend specific
+frontend/dist
+frontend/.vite
+

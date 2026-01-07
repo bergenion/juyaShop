@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -12,6 +12,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsApi } from '../../api/products';
 import { cartApi } from '../../api/cart';
@@ -23,6 +24,7 @@ import './ProductPage.scss';
 const ProductPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const queryClient = useQueryClient();
@@ -31,6 +33,27 @@ const ProductPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const isAdmin = user?.role === 'ADMIN';
+
+  // Определяем источник перехода
+  const navigationState = (location.state as any) || {};
+  const navigationSource = navigationState.from || 'catalog';
+  const isFromEdit = navigationState.fromEdit === true; // Флаг, что переход был после редактирования
+
+  // Обработчик кнопки "Назад"
+  const handleBack = () => {
+    if (isFromEdit) {
+      // Если переход был после редактирования товара - переходим в каталог с фильтрами по умолчанию
+      localStorage.removeItem('catalogFilters');
+      localStorage.removeItem('catalogPage');
+      navigate('/catalog');
+    } else if (navigationSource === 'admin') {
+      // Если переход был из админки (но не после редактирования) - возвращаемся в админку
+      navigate('/admin');
+    } else {
+      // Если переход был из каталога - возвращаемся с сохранением фильтров
+      navigate('/catalog');
+    }
+  };
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
@@ -111,41 +134,50 @@ const ProductPage = () => {
 
   return (
     <Box className="product-page">
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={handleBack}
+        className="product-page__back-button"
+      >
+        Назад
+      </Button>
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Card className="product-page__image-card">
-            <img
-              src={allImages[currentImageIndex]}
-              alt={`${product.name} - изображение ${currentImageIndex + 1}`}
-              className="product-page__image"
-            />
-            {allImages.length > 1 && (
-              <>
-                <IconButton
-                  onClick={handlePreviousImage}
-                  className="product-page__nav-button product-page__nav-button--prev"
-                >
-                  <ArrowBackIosIcon />
-                </IconButton>
-                <IconButton
-                  onClick={handleNextImage}
-                  className="product-page__nav-button product-page__nav-button--next"
-                >
-                  <ArrowForwardIosIcon />
-                </IconButton>
-                <Box className="product-page__indicators">
-                  {allImages.map((_, index) => (
-                    <Box
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`product-page__indicator ${
-                        currentImageIndex === index ? 'product-page__indicator--active' : ''
-                      }`}
-                    />
-                  ))}
-                </Box>
-              </>
-            )}
+            <Box className="product-page__image-wrapper">
+              <img
+                src={allImages[currentImageIndex]}
+                alt={`${product.name} - изображение ${currentImageIndex + 1}`}
+                className="product-page__image"
+              />
+              {allImages.length > 1 && (
+                <>
+                  <IconButton
+                    onClick={handlePreviousImage}
+                    className="product-page__nav-button product-page__nav-button--prev"
+                  >
+                    <ArrowBackIosIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={handleNextImage}
+                    className="product-page__nav-button product-page__nav-button--next"
+                  >
+                    <ArrowForwardIosIcon />
+                  </IconButton>
+                  <Box className="product-page__indicators">
+                    {allImages.map((_, index) => (
+                      <Box
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`product-page__indicator ${
+                          currentImageIndex === index ? 'product-page__indicator--active' : ''
+                        }`}
+                      />
+                    ))}
+                  </Box>
+                </>
+              )}
+            </Box>
           </Card>
         </Grid>
         <Grid item xs={12} md={6}>

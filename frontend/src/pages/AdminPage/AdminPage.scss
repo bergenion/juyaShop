@@ -1,6 +1,13 @@
 .admin-page {
-  &__title {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 24px;
+  }
+
+  &__title {
+    margin-bottom: 0;
   }
 
   &__tabs {
@@ -12,15 +19,42 @@
   }
 
   &__add-button {
-    margin-bottom: 16px;
+    font-size: 1.2em; // Увеличение шрифта на 20%
+    padding: 12px 24px; // Увеличение размера кнопки на 20% (примерно)
+    min-height: 48px; // Увеличение высоты на 20%
   }
 
   &__table {
     // Стили для таблицы
   }
 
+  &__sortable-header {
+    user-select: none;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   &__edit-button {
     // Стили для кнопки редактирования
+  }
+
+  &__delete-button {
+    color: rgba(0, 0, 0, 0.54) !important;
+    transition: color 0.2s, background-color 0.2s;
+
+    &:hover {
+      color: #d32f2f !important;
+      background-color: rgba(211, 47, 47, 0.04) !important;
+    }
   }
 
   &__orders {
@@ -71,7 +105,7 @@
   }
 
   &__images-preview {
-    margin-top: 8px;
+    margin-top: 8px !important;
   }
 
   &__image-wrapper {
@@ -110,6 +144,26 @@
 
   &__dialog-save {
     // Стили для кнопки сохранения
+  }
+
+  &__delete-dialog {
+    // Стили для диалога удаления
+  }
+
+  &__delete-dialog-title {
+    // Стили для заголовка диалога удаления
+  }
+
+  &__delete-dialog-actions {
+    // Стили для действий диалога удаления
+  }
+
+  &__delete-dialog-cancel {
+    // Стили для кнопки отмены удаления
+  }
+
+  &__delete-dialog-confirm {
+    // Стили для кнопки подтверждения удаления
   }
 }
 

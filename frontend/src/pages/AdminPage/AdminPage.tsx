@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -24,11 +24,15 @@ import {
   FormControl,
   Grid,
   IconButton,
+  Tooltip,
+  Autocomplete,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsApi, Product } from '../../api/products';
-import { ordersApi } from '../../api/orders';
+import { ordersApi, Order } from '../../api/orders';
 import './AdminPage.scss';
 
 const AdminPage = () => {
@@ -48,16 +52,27 @@ const AdminPage = () => {
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+  const [orderSortField, setOrderSortField] = useState<string | null>(null);
+  const [orderSortDirection, setOrderSortDirection] = useState<'asc' | 'desc' | null>(null);
   const queryClient = useQueryClient();
 
   const { data: products } = useQuery({
     queryKey: ['products', 'admin'],
-    queryFn: () => productsApi.getAll({ limit: 1000 }),
+    queryFn: () => productsApi.getAll({ limit: 1000, includeInactive: true }),
   });
 
   const { data: orders } = useQuery({
     queryKey: ['orders', 'admin'],
     queryFn: ordersApi.getAll,
+  });
+
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: productsApi.getCategories,
   });
 
   const createProductMutation = useMutation({
@@ -68,15 +83,21 @@ const AdminPage = () => {
         return productsApi.create(data, imageFiles);
       }
     },
-    onSuccess: (savedProduct) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+    onSuccess: async (savedProduct) => {
+      // Инвалидируем и принудительно перезагружаем данные
+      await queryClient.invalidateQueries({ queryKey: ['products', 'all'] });
+      await queryClient.refetchQueries({ queryKey: ['products', 'all'] });
+      await queryClient.invalidateQueries({ queryKey: ['categories'] });
+      await queryClient.refetchQueries({ queryKey: ['categories'] });
       setProductDialogOpen(false);
       resetForm();
       
       // Переход на страницу товара после сохранения
       const productId = editingProduct?.id || savedProduct.id;
       if (productId) {
-        navigate(`/product/${productId}`);
+        navigate(`/product/${productId}`, {
+          state: { from: 'admin', fromEdit: true }, // Помечаем, что переход был после редактирования
+        });
       }
     },
   });
@@ -89,6 +110,161 @@ const AdminPage = () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return productsApi.delete(id);
+    },
+    onSuccess: async () => {
+      // Инвалидируем и принудительно перезагружаем данные
+      await queryClient.invalidateQueries({ queryKey: ['products', 'all'] });
+      await queryClient.refetchQueries({ queryKey: ['products', 'all'] });
+      await queryClient.invalidateQueries({ queryKey: ['products', 'admin'] });
+      await queryClient.refetchQueries({ queryKey: ['products', 'admin'] });
+      await queryClient.invalidateQueries({ queryKey: ['categories'] });
+      await queryClient.refetchQueries({ queryKey: ['categories'] });
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+    },
+  });
+
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (productToDelete) {
+      deleteProductMutation.mutate(productToDelete.id);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setProductToDelete(null);
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField !== field) {
+      // Новое поле - сортировка по возрастанию
+      setSortField(field);
+      setSortDirection('asc');
+    } else if (sortDirection === 'asc') {
+      // Тот же столбец, было asc - переключаем на desc
+      setSortDirection('desc');
+    } else if (sortDirection === 'desc') {
+      // Тот же столбец, было desc - сбрасываем сортировку
+      setSortField(null);
+      setSortDirection(null);
+    }
+  };
+
+  // Сортируем товары
+  const sortedProducts = useMemo(() => {
+    if (!products?.products || !sortField || !sortDirection) {
+      return products?.products || [];
+    }
+
+    const sorted = [...products.products];
+    sorted.sort((a, b) => {
+      let aValue: any = a[sortField as keyof Product];
+      let bValue: any = b[sortField as keyof Product];
+
+      // Обработка разных типов данных
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      } else if (typeof aValue === 'number') {
+        // Для числовых значений сортируем как числа
+        aValue = Number(aValue);
+        bValue = Number(bValue);
+      }
+
+      // Обработка null/undefined
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [products?.products, sortField, sortDirection]);
+
+  const handleOrderSort = (field: string) => {
+    if (orderSortField !== field) {
+      // Новое поле - сортировка по возрастанию
+      setOrderSortField(field);
+      setOrderSortDirection('asc');
+    } else if (orderSortDirection === 'asc') {
+      // Тот же столбец, было asc - переключаем на desc
+      setOrderSortDirection('desc');
+    } else if (orderSortDirection === 'desc') {
+      // Тот же столбец, было desc - сбрасываем сортировку
+      setOrderSortField(null);
+      setOrderSortDirection(null);
+    }
+  };
+
+  // Сортируем заказы
+  const sortedOrders = useMemo(() => {
+    if (!orders || !orderSortField || !orderSortDirection) {
+      return orders || [];
+    }
+
+    const sorted = [...orders];
+    sorted.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      // Определяем значение в зависимости от поля сортировки
+      switch (orderSortField) {
+        case 'client':
+          // Клиент = firstName + lastName
+          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+          break;
+        case 'total':
+          // Сумма - числовое значение
+          aValue = Number(a.total);
+          bValue = Number(b.total);
+          break;
+        case 'status':
+          // Статус - строка
+          aValue = a.status.toLowerCase();
+          bValue = b.status.toLowerCase();
+          break;
+        case 'date':
+          // Дата - преобразуем в Date объект для правильной сортировки
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      // Обработка null/undefined
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      if (aValue < bValue) {
+        return orderSortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return orderSortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [orders, orderSortField, orderSortDirection]);
 
   const resetForm = () => {
     setProductForm({
@@ -164,6 +340,12 @@ const AdminPage = () => {
 
   const handleSaveProduct = () => {
     const dataToSave = { ...productForm };
+    
+    // Преобразуем первую букву категории в заглавную
+    if (dataToSave.category && dataToSave.category.length > 0) {
+      dataToSave.category = dataToSave.category.charAt(0).toUpperCase() + dataToSave.category.slice(1).toLowerCase();
+    }
+    
     if (imageFiles.length > 0) {
       const formData = new FormData();
       Object.keys(dataToSave).forEach(key => {
@@ -186,9 +368,21 @@ const AdminPage = () => {
 
   return (
     <Box className="admin-page">
-      <Typography variant="h4" component="h1" className="admin-page__title">
-        Админ-панель
-      </Typography>
+      <Box className="admin-page__header">
+        <Typography variant="h4" component="h1" className="admin-page__title">
+          Админ-панель
+        </Typography>
+        {tab === 0 && (
+          <Button
+            variant="contained"
+            onClick={() => handleOpenProductDialog()}
+            className="admin-page__add-button"
+            size="large"
+          >
+            Добавить товар
+          </Button>
+        )}
+      </Box>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} className="admin-page__tabs">
         <Tab label="Товары" />
         <Tab label="Заказы" />
@@ -196,35 +390,95 @@ const AdminPage = () => {
 
       {tab === 0 && (
         <Box className="admin-page__products">
-          <Button
-            variant="contained"
-            onClick={() => handleOpenProductDialog()}
-            className="admin-page__add-button"
-          >
-            Добавить товар
-          </Button>
           <TableContainer component={Paper} className="admin-page__table">
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Название</TableCell>
-                  <TableCell>Категория</TableCell>
-                  <TableCell>Цена</TableCell>
-                  <TableCell>В наличии</TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleSort('name')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      Название
+                      {sortField === 'name' && sortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {sortField === 'name' && sortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleSort('category')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      Категория
+                      {sortField === 'category' && sortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {sortField === 'category' && sortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleSort('price')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      Цена
+                      {sortField === 'price' && sortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {sortField === 'price' && sortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleSort('inStock')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      В наличии
+                      {sortField === 'inStock' && sortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {sortField === 'inStock' && sortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
                   <TableCell>Действия</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {products?.products.map((product) => (
+                {sortedProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>{product.name}</TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell>{product.price} ₽</TableCell>
                     <TableCell>{product.inStock}</TableCell>
                     <TableCell>
-                      <Button size="small" onClick={() => handleOpenProductDialog(product)} className="admin-page__edit-button">
-                        Редактировать
-                      </Button>
+                      <Box className="admin-page__actions">
+                        <Button size="small" onClick={() => handleOpenProductDialog(product)} className="admin-page__edit-button">
+                          Редактировать
+                        </Button>
+                        <Tooltip title="Удалить" arrow>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteClick(product)}
+                            className="admin-page__delete-button"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -241,15 +495,71 @@ const AdminPage = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>ID</TableCell>
-                  <TableCell>Клиент</TableCell>
-                  <TableCell>Сумма</TableCell>
-                  <TableCell>Статус</TableCell>
-                  <TableCell>Дата</TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleOrderSort('client')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      Клиент
+                      {orderSortField === 'client' && orderSortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {orderSortField === 'client' && orderSortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleOrderSort('total')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      Сумма
+                      {orderSortField === 'total' && orderSortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {orderSortField === 'total' && orderSortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleOrderSort('status')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      Статус
+                      {orderSortField === 'status' && orderSortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {orderSortField === 'status' && orderSortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    className="admin-page__sortable-header"
+                    onClick={() => handleOrderSort('date')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      Дата
+                      {orderSortField === 'date' && orderSortDirection === 'asc' && (
+                        <ArrowUpwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                      {orderSortField === 'date' && orderSortDirection === 'desc' && (
+                        <ArrowDownwardIcon fontSize="small" style={{ color: '#000' }} />
+                      )}
+                    </Box>
+                  </TableCell>
                   <TableCell>Действия</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {orders?.map((order) => (
+                {sortedOrders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>{order.id.substring(0, 8)}</TableCell>
                     <TableCell>
@@ -369,11 +679,37 @@ const AdminPage = () => {
                 />
               )}
             </Box>
-            <TextField
-              label="Категория"
-              fullWidth
+            <Autocomplete
+              freeSolo
+              options={categories || []}
               value={productForm.category}
-              onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+              onInputChange={(_, newValue) => {
+                setProductForm({ ...productForm, category: newValue });
+              }}
+              onChange={(_, newValue) => {
+                if (typeof newValue === 'string') {
+                  setProductForm({ ...productForm, category: newValue });
+                } else if (newValue === null) {
+                  setProductForm({ ...productForm, category: '' });
+                }
+              }}
+              filterOptions={(options, { inputValue }) => {
+                // Показываем список только если введено 2+ символа
+                if (inputValue.length < 2) {
+                  return [];
+                }
+                // Фильтруем категории по введенному тексту
+                return options.filter((option) =>
+                  option.toLowerCase().includes(inputValue.toLowerCase())
+                );
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Категория"
+                  className="admin-page__dialog-field"
+                />
+              )}
               className="admin-page__dialog-field"
             />
             <TextField
@@ -392,6 +728,35 @@ const AdminPage = () => {
           </Button>
           <Button onClick={handleSaveProduct} variant="contained" className="admin-page__dialog-save">
             Сохранить
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        className="admin-page__delete-dialog"
+      >
+        <DialogTitle className="admin-page__delete-dialog-title">
+          Подтверждение удаления
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Вы уверены, что хотите удалить товар?
+          </Typography>
+        </DialogContent>
+        <DialogActions className="admin-page__delete-dialog-actions">
+          <Button onClick={handleDeleteCancel} className="admin-page__delete-dialog-cancel">
+            Нет
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            color="error"
+            className="admin-page__delete-dialog-confirm"
+            disabled={deleteProductMutation.isPending}
+          >
+            {deleteProductMutation.isPending ? 'Удаление...' : 'Да'}
           </Button>
         </DialogActions>
       </Dialog>

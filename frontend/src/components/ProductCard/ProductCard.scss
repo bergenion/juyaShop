@@ -5,9 +5,9 @@
   flex-direction: column;
   transition: transform 0.2s;
 
-  &:hover {
-    transform: translateY(-4px);
-  }
+  // &:hover {
+  //   transform: translateY(-4px);
+  // }
 
   &__image-wrapper {
     position: relative;
@@ -38,7 +38,7 @@
   }
 
   &__description {
-    margin-bottom: 16px;
+    margin-bottom: 26px;
     min-height: 40px;
     color: rgba(0, 0, 0, 0.6);
   }

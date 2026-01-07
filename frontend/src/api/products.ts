@@ -23,6 +23,7 @@ export interface ProductQuery {
   sortOrder?: 'asc' | 'desc';
   minPrice?: number;
   maxPrice?: number;
+  includeInactive?: boolean;
 }
 
 export interface ProductsResponse {

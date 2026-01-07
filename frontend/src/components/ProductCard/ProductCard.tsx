@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, Typography, Chip, Box } from '@mui/material';
 import { Product } from '../../api/products';
 import './ProductCard.scss';
@@ -10,6 +10,9 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, imageHeight = 250 }: ProductCardProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Формируем массив всех изображений товара
   const allImages = (() => {
     const images = [];
@@ -33,16 +36,35 @@ const ProductCard = ({ product, imageHeight = 250 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const currentImage = isHovered && hasSecondImage ? allImages[1] : allImages[0];
 
+  // Определяем источник перехода
+  const getNavigationSource = () => {
+    if (location.pathname === '/admin') {
+      return 'admin';
+    }
+    if (location.pathname === '/catalog' || location.pathname === '/') {
+      return 'catalog';
+    }
+    return 'catalog'; // По умолчанию из каталога
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate(`/product/${product.id}`, {
+      state: { from: getNavigationSource() },
+    });
+  };
+
   return (
     <Card
-      component={Link}
-      to={`/product/${product.id}`}
+      onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="product-card"
+      sx={{ cursor: 'pointer' }}
     >
       <Box className="product-card__image-wrapper" style={{ height: `${imageHeight}px` }}>
         <img
+          key={`${product.id}-${currentImage}`}
           src={currentImage}
           alt={product.name}
           className="product-card__image"

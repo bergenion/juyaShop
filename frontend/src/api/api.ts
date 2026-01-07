@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Всегда используем localhost для локальной разработки
-const API_URL = 'http://localhost:3000/api';
+// Определяем URL API в зависимости от окружения
+// В продакшне используем относительный путь (nginx проксирует на backend)
+// В разработке используем localhost
+const API_URL = import.meta.env.PROD 
+  ? '/api' 
+  : 'http://localhost:3000/api';
 
 export const api = axios.create({
   baseURL: API_URL,

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsNumber, Min, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsNumber, Min, IsEnum, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum SortOrder {
@@ -52,5 +52,10 @@ export class ProductQueryDto {
   @IsNumber()
   @Min(0)
   maxPrice?: number;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  includeInactive?: boolean;
 }
 

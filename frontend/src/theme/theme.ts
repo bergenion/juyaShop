@@ -61,6 +61,13 @@ export const theme = createTheme({
         },
       },
     },
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          // Здесь можно добавить глобальные стили для всех FormControl
+        },
+      },
+    },
   },
 });
 
