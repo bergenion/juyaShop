@@ -2,7 +2,6 @@ import { cartApi, CartResponse } from '../api/cart';
 import {
   getLocalCart,
   clearLocalCart,
-  LocalCartItem,
 } from './localCart';
 
 /**

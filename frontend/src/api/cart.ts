@@ -1,14 +1,12 @@
 import { api } from './api';
 import {
   getLocalCart,
-  saveLocalCart,
   addToLocalCart,
   updateLocalCartQuantity,
   removeFromLocalCart,
   clearLocalCart,
   getLocalCartTotal,
   getLocalCartAsCartItems,
-  LocalCartItem,
 } from '../utils/localCart';
 import { productsApi } from './products';
 

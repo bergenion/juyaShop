@@ -15,7 +15,6 @@ import { useAppDispatch } from '../../hooks/redux';
 import { setCredentials } from '../../store/slices/authSlice';
 import { setCart } from '../../store/slices/cartSlice';
 import { syncLocalCartToServer } from '../../utils/syncCart';
-import { cartApi } from '../../api/cart';
 import './RegisterPage.scss';
 
 const RegisterPage = () => {
