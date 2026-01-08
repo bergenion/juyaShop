@@ -1,0 +1,17 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - cd $CI_PROJECT_DIR
+    - git pull origin $CI_COMMIT_REF_NAME || git pull origin main || git pull origin master
+    - docker-compose down
+    - docker-compose build
+    - docker-compose up -d
+  only:
+    - main
+    - master
+  environment:
+    name: production
+
