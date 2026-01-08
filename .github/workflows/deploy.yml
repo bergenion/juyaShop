@@ -37,28 +37,26 @@ jobs:
         continue-on-error: true
 
       - name: Stop containers
-        run: docker-compose down; if ($LASTEXITCODE -ne 0) { Write-Host "No containers to stop or error occurred, continuing..." }
-        shell: powershell
+        run: docker-compose down
+        shell: cmd
         working-directory: ${{ github.workspace }}
         continue-on-error: true
 
       - name: Build and start containers
         run: |
-          # Используем кэш для ускорения сборки
-          # --no-cache используйте только при необходимости полной пересборки
           docker-compose build
           docker-compose up -d
-        shell: powershell
+        shell: cmd
         working-directory: ${{ github.workspace }}
 
       - name: Run database migrations
         run: docker exec juyashop-backend npx prisma migrate deploy
-        shell: powershell
+        shell: cmd
         continue-on-error: true
 
       - name: Clean up old images
         run: docker image prune -f
-        shell: powershell
+        shell: cmd
 
       - name: Verify deployment
         run: |
